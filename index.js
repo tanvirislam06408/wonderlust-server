@@ -27,7 +27,28 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
-        const database = client.db();
+        const database = client.db('wonder-lust');
+        const destinationColl=database.collection('destinations');
+
+
+
+
+
+
+
+        // get
+        app.get('/destinations',async(req,res)=>{
+            const cursor=await destinationColl.find();
+            const result=await cursor.toArray();
+            res.send(result);
+        })
+
+        // post
+        app.post('/destinations',async(req,res)=>{
+            const data= req.body;
+            const result =await destinationColl.insertOne(data);
+            res.send(result)
+        })
     
         
 
