@@ -43,6 +43,16 @@ async function run() {
             res.send(result);
         })
 
+        // get one destination
+        app.get('/destinations/:id',async(req,res)=>{
+            const id =req.params.id;
+            const query={
+                _id:new ObjectId(id)
+            }
+            const result=await destinationColl.findOne(query);
+            res.send(result)
+            
+        })
         // post
         app.post('/destinations',async(req,res)=>{
             const data= req.body;
@@ -50,11 +60,34 @@ async function run() {
             res.send(result)
         })
     
-        
+        // patch
+        app.patch('/destination/:id',async(req,res)=>{
+            const id =req.params.id;
+            const data = req.body
+           const updatedDoc={
+            $set:data
+           }
+            
+            const query={
+                _id:new ObjectId(id)
+            }
+
+            const result = await destinationColl.updateOne(query,updatedDoc);
+            res.send(result);
+
+        })
 
     
 
-
+        // delete
+        app.delete('/destination/:id',async(req,res)=>{
+            const id =req.params.id;
+            const query={
+                _id:new ObjectId(id)
+            }
+            const result=await destinationColl.deleteOne(query);
+            res.send(result);
+        })
 
 
 
