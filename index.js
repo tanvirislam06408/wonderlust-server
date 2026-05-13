@@ -28,7 +28,8 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         const database = client.db('wonder-lust');
-        const destinationColl=database.collection('destinations');
+        const destinationColl = database.collection('destinations');
+        const bookingColl = database.collection('bookings');
 
 
 
@@ -37,60 +38,85 @@ async function run() {
 
 
         // get
-        app.get('/destinations',async(req,res)=>{
-            const cursor=await destinationColl.find();
-            const result=await cursor.toArray();
+        app.get('/destinations', async (req, res) => {
+            const cursor = await destinationColl.find();
+            const result = await cursor.toArray();
             res.send(result);
         })
 
         // get one destination
-        app.get('/destinations/:id',async(req,res)=>{
-            const id =req.params.id;
-            const query={
-                _id:new ObjectId(id)
+        app.get('/destinations/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
             }
-            const result=await destinationColl.findOne(query);
+            const result = await destinationColl.findOne(query);
             res.send(result)
-            
+
         })
         // post
-        app.post('/destinations',async(req,res)=>{
-            const data= req.body;
-            const result =await destinationColl.insertOne(data);
+        app.post('/destinations', async (req, res) => {
+            const data = req.body;
+            const result = await destinationColl.insertOne(data);
             res.send(result)
         })
-    
+
         // patch
-        app.patch('/destination/:id',async(req,res)=>{
-            const id =req.params.id;
+        app.patch('/destination/:id', async (req, res) => {
+            const id = req.params.id;
             const data = req.body
-           const updatedDoc={
-            $set:data
-           }
+            const updatedDoc = {
+                $set: data
+            }
+
+            const query = {
+                _id: new ObjectId(id)
+            }
+
+            const result = await destinationColl.updateOne(query, updatedDoc);
+            res.send(result);
+
+        })
+
+
+
+        // delete
+        app.delete('/destination/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
+            }
+            const result = await destinationColl.deleteOne(query);
+            res.send(result);
+        })
+
+        // post bookings
+        app.post('/book-destination', async (req, res) => {
+            const data = req.body
+            const result = await bookingColl.insertOne(data);
+            res.send(result);
+        })
+        // get booking
+        app.get('/book-destination/:id',async(req,res)=>{
+            const id=req.params.id;
+            const query={
+                userId:id
+            }
+            const result = await bookingColl.find(query).toArray();
+            res.send(result)
+        })
+        app.delete('/book-destination/:id',async(req,res)=>{
+            const id = req.params.id
+           
             
             const query={
                 _id:new ObjectId(id)
             }
-
-            const result = await destinationColl.updateOne(query,updatedDoc);
-            res.send(result);
-
+            console.log(query);
+            
+            const result=await bookingColl.deleteOne(query)
+            res.send(result)
         })
-
-    
-
-        // delete
-        app.delete('/destination/:id',async(req,res)=>{
-            const id =req.params.id;
-            const query={
-                _id:new ObjectId(id)
-            }
-            const result=await destinationColl.deleteOne(query);
-            res.send(result);
-        })
-
-
-
 
 
         // Send a ping to confirm a successful connection
