@@ -45,8 +45,15 @@ async function run() {
         })
 
         // get one destination
-        app.get('/destinations/:id', async (req, res) => {
+        app.get('/destinations/:id',(req,res,next)=>{
+            const header=req.headers.authorization
+            console.log(header);
+            
+            next()
+
+        }, async (req, res) => {
             const id = req.params.id;
+            
             const query = {
                 _id: new ObjectId(id)
             }
