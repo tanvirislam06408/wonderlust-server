@@ -113,7 +113,7 @@ async function run() {
 
 
         // delete
-        app.delete('/destination/:id', async (req, res) => {
+        app.delete('/destination/:id',verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = {
                 _id: new ObjectId(id)
