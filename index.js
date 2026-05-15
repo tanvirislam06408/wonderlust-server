@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
@@ -21,6 +22,36 @@ const client = new MongoClient(uri, {
     }
 });
 
+const JWKS = createRemoteJWKSet(
+    new URL('http://localhost:3000/api/auth/jwks')
+)
+
+
+
+
+// verify the jwt token
+const verifyToken = async(req, res, next) => {
+    const tokenHeader = req.headers.authorization;
+    if (!tokenHeader) {
+        return res.status(401).send({ message: 'Unauthorized' })
+    }
+
+    const token = tokenHeader.split(" ")[1]
+    if (!token) {
+        return res.status(401).send({ message: 'Unauthorized' })
+    }
+    try{
+            const { payload } = await jwtVerify(token, JWKS)
+            console.log(payload);
+            
+            next()
+    }
+    catch(error){
+        return res.status(403).send({ message: 'Forbidden' })
+    }
+
+
+}
 
 
 async function run() {
@@ -45,15 +76,9 @@ async function run() {
         })
 
         // get one destination
-        app.get('/destinations/:id',(req,res,next)=>{
-            const header=req.headers.authorization
-            console.log(header);
-            
-            next()
-
-        }, async (req, res) => {
+        app.get('/destinations/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
-            
+
             const query = {
                 _id: new ObjectId(id)
             }
@@ -98,32 +123,32 @@ async function run() {
         })
 
         // post bookings
-        app.post('/book-destination', async (req, res) => {
+        app.post('/book-destination',verifyToken, async (req, res) => {
             const data = req.body
             const result = await bookingColl.insertOne(data);
             res.send(result);
         })
         // get booking
-        app.get('/book-destination/:id',async(req,res)=>{
-            const id=req.params.id;
-            const query={
-                userId:id
+        app.get('/book-destination/:id', verifyToken,async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                userId: id
             }
             const result = await bookingColl.find(query).toArray();
             res.send(result)
         })
 
-        
-        app.delete('/book-destination/:id',async(req,res)=>{
+
+        app.delete('/book-destination/:id', async (req, res) => {
             const id = req.params.id
-           
-            
-            const query={
-                _id:new ObjectId(id)
+
+
+            const query = {
+                _id: new ObjectId(id)
             }
             console.log(query);
-            
-            const result=await bookingColl.deleteOne(query)
+
+            const result = await bookingColl.deleteOne(query)
             res.send(result)
         })
 
